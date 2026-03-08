@@ -244,7 +244,6 @@ const SecureVideoPlayer = ({ videoId, onComplete, onProgress, title, poster, wat
             <div className="absolute inset-0 pointer-events-none">
                 <YouTube
                     videoId={videoId}
-                    key={`${videoId}-${captionsEnabled}-${captionLang}`}
                     className="w-full h-full"
                     iframeClassName="w-full h-full"
                     opts={{
