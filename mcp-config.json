@@ -1,0 +1,15 @@
+{
+    "mcpServers": {
+        "supabase": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "mcp-remote",
+                "https://mcp.supabase.com/mcp?project_ref=pbxrtqurwdfoplhbzyhd&features=docs%2Caccount%2Cdatabase%2Cdebugging%2Cdevelopment%2Cfunctions%2Cbranching%2Cstorage"
+            ],
+            "env": {
+                "SUPABASE_ACCESS_TOKEN": "sbp_v0_d87b5055f4f803a5d117e35c8060012e65039cec"
+            }
+        }
+    }
+}
