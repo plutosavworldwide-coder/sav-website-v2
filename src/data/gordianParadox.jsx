@@ -40,7 +40,7 @@ export const gordianParadoxData = [
             },
             {
                 number: 4,
-                title: "Gordian Paradox 2 Sunday / Week 2 March",
+                title: "Weekly Cycle Mapping — Live Breakdown & Forecasting",
                 duration: "25:00",
                 views: "1.2m",
                 time: "1w ago",
