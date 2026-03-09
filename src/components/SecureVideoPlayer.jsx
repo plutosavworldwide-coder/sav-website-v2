@@ -111,6 +111,18 @@ const SecureVideoPlayer = ({ videoId, onComplete, onProgress, title, poster, wat
         setCaptionLang(langCode);
         setCaptionsEnabled(true);
         setShowSettings(false);
+
+        if (playerRef.current) {
+            try {
+                // Load the captions module if not already loaded
+                playerRef.current.loadModule('captions');
+                // Set the caption track to the selected language
+                playerRef.current.setOption('captions', 'track', { languageCode: langCode });
+            } catch (err) {
+                console.warn('Could not set caption language via API, reloading player:', err);
+                // Fallback: force re-render by toggling a key (handled by key prop)
+            }
+        }
     };
 
     const startProgressLoop = () => {
@@ -183,8 +195,21 @@ const SecureVideoPlayer = ({ videoId, onComplete, onProgress, title, poster, wat
     };
 
     const toggleCaptions = () => {
-        // Toggle state to trigger re-render with new playerVars
-        setCaptionsEnabled(!captionsEnabled);
+        const newState = !captionsEnabled;
+        setCaptionsEnabled(newState);
+
+        if (playerRef.current) {
+            try {
+                if (newState) {
+                    playerRef.current.loadModule('captions');
+                    playerRef.current.setOption('captions', 'track', { languageCode: captionLang });
+                } else {
+                    playerRef.current.unloadModule('captions');
+                }
+            } catch (err) {
+                console.warn('Caption toggle error:', err);
+            }
+        }
     };
 
     const toggleFullscreen = () => {
