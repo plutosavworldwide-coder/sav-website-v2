@@ -37,6 +37,17 @@ export const gordianParadoxData = [
                 color: "from-amber-500/20 to-orange-600/10",
                 iconColor: "text-amber-400",
                 videoId: "4Pk-t8B3XOw"
+            },
+            {
+                number: 4,
+                title: "Gordian Paradox 2 Sunday / Week 2 March",
+                duration: "25:00",
+                views: "1.2m",
+                time: "1w ago",
+                icon: <Zap size={32} />,
+                color: "from-amber-500/20 to-orange-600/10",
+                iconColor: "text-amber-400",
+                videoId: "IZY7OwKT6vw"
             }
         ]
     }
