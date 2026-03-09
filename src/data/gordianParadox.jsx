@@ -7,7 +7,7 @@ export const gordianParadoxData = [
         videos: [
             {
                 number: 1,
-                title: "The Gordian Paradox",
+                title: "Gordian Paradox — Lecture 1: Introduction",
                 duration: "25:00", // Estimating duration, can be updated later
                 views: "1.2m", // Placeholder
                 time: "1y ago", // Placeholder
@@ -18,7 +18,7 @@ export const gordianParadoxData = [
             },
             {
                 number: 2,
-                title: "How to Predict Trade Setups Before the Week Begins — Without PD Arrays",
+                title: "Gordian Paradox — Lecture 2: Predicting Weekly Setups",
                 duration: "25:00",
                 views: "1.2m",
                 time: "1y ago",
@@ -29,7 +29,7 @@ export const gordianParadoxData = [
             },
             {
                 number: 3,
-                title: "Gordian Paradox 1 Sunday / Week 1 March",
+                title: "Gordian Paradox — Lecture 3: Weekly Cycle Analysis",
                 duration: "25:00",
                 views: "1.2m",
                 time: "1y ago",
@@ -40,7 +40,7 @@ export const gordianParadoxData = [
             },
             {
                 number: 4,
-                title: "Weekly Cycle Mapping — Lecture Breakdown & Forecasting",
+                title: "Gordian Paradox — Lecture 4: Cycle Mapping & Forecasting",
                 duration: "25:00",
                 views: "1.2m",
                 time: "1w ago",
