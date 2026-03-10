@@ -57,9 +57,7 @@ export function AppSidebar({ children }) {
         { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
         { label: "Daily Reviews", href: "/daily-reviews", icon: Video },
         { label: "Tools", href: "/indicators", icon: BarChart2 },
-        { label: "Live Sessions", href: "/scheduled-sessions", icon: Calendar },
-
-        ...(isAdmin ? [{ label: "Admin", href: "/admin", icon: Shield }] : [])
+        { label: "Live Sessions", href: "/scheduled-sessions", icon: Calendar }
     ];
 
     const handleSignOut = async () => {
