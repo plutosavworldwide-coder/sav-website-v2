@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, Clock, Video, ArrowRight, ExternalLink, Users, Bell, ChevronLeft } from 'lucide-react';
+import { Calendar, Clock, Video, ArrowRight, ExternalLink, Users, Bell } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { cn } from "@/lib/utils";
@@ -7,21 +7,22 @@ import { cn } from "@/lib/utils";
 const ScheduledSessions = () => {
     const navigate = useNavigate();
 
-    // Mock Data for display purposes
     const sessions = [
         {
             id: 1,
             title: "Market Outlook & Weekly Prep",
-            date: "Sunday, Feb 18",
+            dayShort: "SUN",
+            dayNum: "18",
             time: "3:00 PM EST",
             type: "Live Analysis",
             description: "Deep dive into the upcoming week's market structure, key levels, and potential setups across major indices.",
-            status: "upcoming"
+            status: "next"
         },
         {
             id: 2,
             title: "Advanced Order Flow Tactics",
-            date: "Wednesday, Feb 21",
+            dayShort: "WED",
+            dayNum: "21",
             time: "2:00 PM EST",
             type: "Masterclass",
             description: "Understanding DOM behavior at structure extremes and interpreting aggressive vs passive market participation.",
@@ -30,7 +31,8 @@ const ScheduledSessions = () => {
         {
             id: 3,
             title: "Friday Market Recap",
-            date: "Friday, Feb 23",
+            dayShort: "FRI",
+            dayNum: "23",
             time: "4:00 PM EST",
             type: "Review",
             description: "A comprehensive review of the week's price action, our trade executions, and lessons learned.",
@@ -38,146 +40,138 @@ const ScheduledSessions = () => {
         }
     ];
 
+    const typeColors = {
+        "Live Analysis": "bg-red-50 text-red-700 border-red-200",
+        "Masterclass": "bg-blue-50 text-blue-700 border-blue-200",
+        "Review": "bg-violet-50 text-violet-700 border-violet-200",
+    };
+
     return (
-        <div className="flex flex-col h-full bg-black text-white font-sans overflow-hidden selection:bg-white/20">
+        <div className="flex flex-col h-full bg-white text-[#37352f] font-sans overflow-hidden selection:bg-[#2383e2]/20">
             <div className="flex-1 flex flex-col h-full overflow-y-auto custom-scrollbar">
-                
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                    className="w-full max-w-7xl mx-auto flex flex-col gap-6 p-6 md:p-10 pb-20"
+                    transition={{ duration: 0.4 }}
+                    className="w-full max-w-7xl mx-auto flex flex-col gap-8 px-6 md:px-10 py-8 pb-20"
                 >
 
                     {/* Header */}
-                    <div className="flex flex-col gap-1 mb-6">
-                        <button
-                            onClick={() => navigate('/dashboard')}
-                            className="flex items-center gap-2 text-zinc-500 hover:text-white mb-4 transition-colors w-fit font-semibold text-sm tracking-tight"
-                        >
-                            <ChevronLeft className="w-4 h-4" />
-                            <span>Back to Dashboard</span>
-                        </button>
-
-                        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                    <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-1.5 text-sm text-[#787774] mb-3">
+                            <button onClick={() => navigate('/dashboard')} className="hover:text-[#37352f] transition-colors font-medium">Dashboard</button>
+                            <span>/</span>
+                            <span className="text-[#37352f] font-medium">Live Sessions</span>
+                        </div>
+                        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                             <div>
-                                <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tighter text-white">
-                                    Live Sessions.
-                                </h1>
-                                <p className="text-zinc-500 text-lg font-medium tracking-tight mt-1 max-w-xl">
-                                    Join us live for real-time market analysis, educational workshops, and community Q&A.
-                                </p>
+                                <h1 className="text-4xl md:text-5xl font-semibold tracking-tighter text-[#37352f]">Live Sessions.</h1>
+                                <p className="text-[#787774] text-base font-medium mt-1">Real-time market analysis, workshops, and community Q&A.</p>
                             </div>
-                            <button className="px-6 py-4 rounded-full bg-white hover:bg-zinc-200 text-black font-semibold transition-all flex items-center gap-2 group shrink-0 active:scale-95 shadow-xl text-sm">
-                                <Bell size={18} />
+                            <button className="self-start md:self-auto flex items-center gap-2 px-5 py-2.5 rounded-lg border border-[#e9e9e7] bg-white hover:bg-[#F7F7F5] hover:border-[#d0d0ce] text-[#37352f] font-semibold text-sm transition-all shadow-sm">
+                                <Bell size={15} />
                                 <span>Get Notifications</span>
                             </button>
                         </div>
                     </div>
 
-                    {/* Featured / Next Session */}
+                    {/* Next Session — slim flat banner with left blue accent */}
                     {sessions.length > 0 && (
-                        <div className="relative group overflow-hidden border border-white/[0.05] rounded-[3rem] bg-[#101010] shadow-2xl">
-                            <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent pointer-events-none" />
-                            <div className="relative z-10 flex flex-col lg:flex-row gap-10 items-start justify-between p-8 md:p-12 lg:p-14">
-                                
-                                <div className="space-y-8 flex-1 min-w-0">
-                                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white text-black text-[10px] font-bold uppercase tracking-widest shadow-lg">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
-                                        Next Session
-                                    </div>
-                                    
-                                    <div className="space-y-4 max-w-2xl">
-                                        <h2 className="text-3xl md:text-5xl lg:text-6xl font-semibold text-white tracking-tight leading-none">
-                                            {sessions[0].title}
-                                        </h2>
-                                        <p className="text-zinc-400 text-base md:text-lg leading-relaxed font-medium">
-                                            {sessions[0].description}
-                                        </p>
-                                    </div>
-                                    
-                                    <div className="flex flex-wrap items-center gap-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest pt-6 border-t border-white/[0.05]">
-                                        <div className="flex items-center gap-2 bg-black px-4 py-3 rounded-[1.25rem] border border-white/5">
-                                            <Calendar size={16} className="text-zinc-300" />
-                                            {sessions[0].date}
+                        <div className="border border-[#e9e9e7] border-l-4 border-l-[#2383e2] rounded-xl bg-white shadow-sm overflow-hidden">
+                            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-5 px-6 py-5">
+                                <div className="flex-1 min-w-0 flex flex-col gap-3">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-50 border border-red-200 text-[10px] font-bold uppercase tracking-widest text-red-700">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                                            Next Session
                                         </div>
-                                        <div className="flex items-center gap-2 bg-black px-4 py-3 rounded-[1.25rem] border border-white/5">
-                                            <Clock size={16} className="text-zinc-300" />
+                                        <span className={cn("text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border", typeColors[sessions[0].type] || "bg-[#F7F7F5] text-[#787774] border-[#e9e9e7]")}>
+                                            {sessions[0].type}
+                                        </span>
+                                    </div>
+                                    <h2 className="text-xl md:text-2xl font-semibold text-[#37352f] tracking-tight leading-snug">
+                                        {sessions[0].title}
+                                    </h2>
+                                    <p className="text-[#787774] text-sm font-medium leading-relaxed max-w-2xl">{sessions[0].description}</p>
+                                    <div className="flex flex-wrap items-center gap-3 text-xs text-[#787774] font-medium">
+                                        <span className="flex items-center gap-1.5">
+                                            <Calendar size={13} />
+                                            {sessions[0].dayShort}, Feb {sessions[0].dayNum}
+                                        </span>
+                                        <span className="w-1 h-1 rounded-full bg-[#e9e9e7]" />
+                                        <span className="flex items-center gap-1.5">
+                                            <Clock size={13} />
                                             {sessions[0].time}
-                                        </div>
-                                        <div className="flex items-center gap-2 bg-black px-4 py-3 rounded-[1.25rem] border border-white/5">
-                                            <Users size={16} className="text-zinc-300" />
+                                        </span>
+                                        <span className="w-1 h-1 rounded-full bg-[#e9e9e7]" />
+                                        <span className="flex items-center gap-1.5">
+                                            <Users size={13} />
                                             Active Community
+                                        </span>
+                                    </div>
+                                </div>
+                                <a
+                                    href="https://discord.gg/your-invite-link"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="shrink-0 flex items-center gap-2 px-6 py-3 rounded-lg bg-[#37352f] hover:bg-black text-white font-semibold text-sm transition-all shadow-sm hover:shadow-md"
+                                >
+                                    <Video size={15} className="fill-white" />
+                                    <span>Join Session</span>
+                                    <ArrowRight size={15} />
+                                </a>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Upcoming section header */}
+                    <div className="flex items-center gap-4 pt-2">
+                        <span className="text-xs font-bold text-[#787774] uppercase tracking-widest">Upcoming</span>
+                        <div className="flex-1 h-px bg-[#e9e9e7]" />
+                    </div>
+
+                    {/* Upcoming: 3-column compact calendar cards */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {sessions.slice(1).map((session, idx) => (
+                            <motion.div
+                                key={session.id}
+                                initial={{ opacity: 0, y: 16 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.05 + idx * 0.08 }}
+                                className="group flex flex-col bg-white border border-[#e9e9e7] rounded-2xl overflow-hidden hover:border-[#d0d0ce] hover:shadow-md transition-all duration-300 cursor-pointer"
+                            >
+                                {/* Calendar date header */}
+                                <div className="bg-[#37352f] px-5 py-4 flex items-center justify-between">
+                                    <div className="flex flex-col">
+                                        <span className="text-white/60 text-[10px] font-bold uppercase tracking-widest">{session.dayShort}</span>
+                                        <span className="text-white text-3xl font-bold leading-none">{session.dayNum}</span>
+                                    </div>
+                                    <span className={cn("text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border", typeColors[session.type] || "bg-white/10 text-white border-white/20")}>
+                                        {session.type}
+                                    </span>
+                                </div>
+
+                                {/* Card content */}
+                                <div className="flex flex-col gap-3 p-5 flex-1">
+                                    <h4 className="text-sm font-semibold text-[#37352f] tracking-tight leading-snug group-hover:text-black transition-colors">
+                                        {session.title}
+                                    </h4>
+                                    <p className="text-xs text-[#787774] font-medium leading-relaxed line-clamp-2">
+                                        {session.description}
+                                    </p>
+                                    <div className="mt-auto pt-3 border-t border-[#e9e9e7] flex items-center justify-between">
+                                        <div className="flex items-center gap-2 text-[10px] text-[#787774] font-semibold">
+                                            <Clock size={11} />
+                                            <span>{session.time}</span>
+                                        </div>
+                                        <div className="w-7 h-7 rounded-full bg-[#F7F7F5] border border-[#e9e9e7] flex items-center justify-center group-hover:bg-[#37352f] group-hover:border-transparent transition-all">
+                                            <ExternalLink size={12} className="text-[#787774] group-hover:text-white transition-colors" />
                                         </div>
                                     </div>
                                 </div>
-
-                                <div className="shrink-0 w-full lg:w-auto flex items-end lg:h-full lg:mt-auto">
-                                    <a
-                                        href="https://discord.gg/your-invite-link" // Replace with actual link
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center justify-center gap-3 px-10 py-5 w-full lg:w-auto rounded-full bg-white hover:bg-zinc-200 text-black font-semibold text-base transition-all active:scale-95 shadow-xl hover:-translate-y-1 group"
-                                    >
-                                        <Video size={18} className="fill-black" />
-                                        <span>Join Session</span>
-                                        <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Upcoming List */}
-                    {sessions.length > 1 && (
-                        <div className="space-y-8 mt-12">
-                            <h3 className="text-3xl font-semibold text-white tracking-tight flex items-center gap-4 px-2">
-                                <span className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
-                                    <Calendar size={20} className="text-white" />
-                                </span>
-                                Upcoming Schedule.
-                            </h3>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {sessions.slice(1).map((session, idx) => (
-                                    <motion.div
-                                        key={session.id}
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: 0.1 + idx * 0.1, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                                    >
-                                        <div className="h-full bg-[#101010] border border-white/[0.05] rounded-[2.5rem] p-8 lg:p-10 hover:bg-[#121212] hover:border-white/20 transition-all duration-300 group flex flex-col justify-between gap-8 cursor-pointer shadow-lg">
-                                            <div className="space-y-5">
-                                                <div className="flex items-start justify-between">
-                                                    <span className="px-3 py-1 rounded-full border border-white/10 bg-black text-zinc-400 text-[10px] font-bold uppercase tracking-widest shadow-inner">
-                                                        {session.type}
-                                                    </span>
-                                                    <div className="w-10 h-10 rounded-full bg-black border border-white/5 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-colors shadow-sm">
-                                                        <ExternalLink size={16} />
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <h4 className="text-2xl lg:text-3xl font-semibold text-white mb-3 tracking-tight group-hover:text-zinc-200 transition-colors">{session.title}</h4>
-                                                    <p className="text-zinc-500 text-sm font-medium leading-relaxed line-clamp-3">
-                                                        {session.description}
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            <div className="pt-6 border-t border-white/[0.02] flex flex-wrap items-center justify-between text-[10px] font-bold text-zinc-500 uppercase tracking-widest gap-2">
-                                                <span className="flex items-center gap-2">
-                                                    <Calendar size={14} strokeWidth={2.5} className="text-zinc-400" /> {session.date}
-                                                </span>
-                                                <span className="flex items-center gap-2">
-                                                    <Clock size={14} strokeWidth={2.5} className="text-zinc-400" /> {session.time}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </motion.div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
+                            </motion.div>
+                        ))}
+                    </div>
 
                 </motion.div>
             </div>

@@ -131,7 +131,7 @@ const WeeklyLivestreams = () => {
     // --- View: Folders (Year Selection) ---
     if (view === 'folders') {
         return (
-            <div className="flex flex-col h-full w-full bg-black text-white overflow-y-auto selection:bg-white/20 custom-scrollbar">
+            <div className="flex flex-col h-full w-full bg-white text-[#37352f] overflow-y-auto selection:bg-[#2383e2]/20 custom-scrollbar">
                 <div className="max-w-7xl mx-auto w-full p-8 md:p-12">
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}
@@ -141,14 +141,14 @@ const WeeklyLivestreams = () => {
                     >
                         <button
                             onClick={() => navigate('/dashboard')}
-                            className="inline-flex items-center gap-2 text-zinc-500 hover:text-white mb-6 transition-colors font-semibold text-sm tracking-tight w-fit mx-auto md:mx-0"
+                            className="inline-flex items-center gap-2 text-[#787774] hover:text-[#37352f] mb-6 transition-colors font-semibold text-sm tracking-tight w-fit mx-auto md:mx-0"
                         >
                             <ArrowRight size={16} className="rotate-180" /> Back to Dashboard
                         </button>
-                        <h1 className="text-5xl md:text-7xl font-semibold tracking-tighter text-white leading-none">
+                        <h1 className="text-5xl md:text-7xl font-semibold tracking-tighter text-[#37352f] leading-none">
                             Livestreams.
                         </h1>
-                        <p className="text-zinc-500 font-medium text-lg max-w-xl leading-relaxed tracking-tight">
+                        <p className="text-[#787774] font-medium text-lg max-w-xl leading-relaxed tracking-tight">
                             The complete archive of weekly market breakdowns.
                         </p>
                     </motion.div>
@@ -167,20 +167,20 @@ const WeeklyLivestreams = () => {
                                     className={cn(
                                         "group relative cursor-pointer rounded-[3rem] overflow-hidden transition-all duration-500 h-[450px] flex flex-col border",
                                         folder.active
-                                            ? "bg-[#101010] border-white/20 hover:border-white/40 shadow-2xl hover:scale-[1.02]"
-                                            : "bg-[#0a0a0a] border-white/5 hover:border-white/10 hover:bg-[#121212] hover:scale-[1.02]"
+                                            ? "bg-white border-[#e9e9e7] shadow-md hover:scale-[1.02]"
+                                            : "bg-[#F7F7F5] border-[#e9e9e7] hover:bg-white hover:shadow-sm hover:scale-[1.02]"
                                     )}
                                 >
                                     <div className="p-10 flex flex-col h-full relative z-10 justify-between">
                                         <div className="flex justify-between items-start">
                                             <div className={cn(
                                                 "w-24 h-24 rounded-[2rem] flex items-center justify-center text-4xl font-semibold tracking-tighter transition-colors duration-500 shrink-0",
-                                                folder.active ? "bg-white text-black shadow-inner" : "bg-white/5 border border-white/5 text-zinc-400 group-hover:bg-white/10 group-hover:text-white"
+                                                folder.active ? "bg-[#37352f] text-white shadow-sm" : "bg-white border border-[#e9e9e7] text-[#787774] group-hover:bg-[#F7F7F5] group-hover:text-[#37352f]"
                                             )}>
                                                 {folder.icon}
                                             </div>
                                             {folder.active && (
-                                                <div className="px-4 py-1.5 rounded-full bg-white/10 text-white text-[10px] font-bold uppercase tracking-widest border border-white/10 shadow-sm flex items-center gap-2">
+                                                <div className="px-4 py-1.5 rounded-full bg-[#F7F7F5] text-[#787774] text-[10px] font-bold uppercase tracking-widest border border-[#e9e9e7] shadow-sm flex items-center gap-2">
                                                     <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]" />
                                                     Current
                                                 </div>
@@ -188,16 +188,16 @@ const WeeklyLivestreams = () => {
                                         </div>
 
                                         <div className="space-y-4">
-                                            <h3 className="text-3xl font-semibold text-white tracking-tight leading-none">{folder.title}</h3>
-                                            <p className="text-zinc-500 text-sm font-medium leading-relaxed">
+                                            <h3 className="text-3xl font-semibold text-[#37352f] tracking-tight leading-none">{folder.title}</h3>
+                                            <p className="text-[#787774] text-sm font-medium leading-relaxed">
                                                 {folder.description}
                                             </p>
 
-                                            <div className="pt-6 mt-6 flex items-center justify-between border-t border-white/[0.05]">
-                                                <span className="text-[10px] uppercase tracking-widest font-bold text-zinc-600 group-hover:text-zinc-400 transition-colors">{count} Recordings</span>
+                                            <div className="pt-6 mt-6 flex items-center justify-between border-t border-[#e9e9e7]">
+                                                <span className="text-[10px] uppercase tracking-widest font-bold text-[#787774] group-hover:text-[#37352f] transition-colors">{count} Recordings</span>
                                                 <div className={cn(
-                                                    "w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500",
-                                                    folder.active ? "bg-white text-black" : "border border-white/10 text-zinc-500 group-hover:bg-white group-hover:text-black group-hover:border-transparent"
+                                                    "w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500 shadow-sm",
+                                                    folder.active ? "bg-[#37352f] text-white" : "border border-[#e9e9e7] bg-white text-[#787774] group-hover:bg-[#37352f] group-hover:text-white group-hover:border-transparent"
                                                 )}>
                                                     <ArrowRight size={20} className="-rotate-45 group-hover:rotate-0 transition-transform duration-500" />
                                                 </div>
@@ -215,7 +215,7 @@ const WeeklyLivestreams = () => {
 
     // --- View: Player (List View) ---
     return (
-        <div className="flex flex-col lg:flex-row h-screen bg-black text-white font-sans overflow-hidden selection:bg-white/20">
+        <div className="flex flex-col lg:flex-row h-screen bg-white text-[#37352f] font-sans overflow-hidden selection:bg-[#2383e2]/20">
 
             {/* Main Content: Player Area */}
             <div className="flex-1 flex flex-col h-full relative z-10 overflow-y-auto custom-scrollbar">
@@ -230,21 +230,21 @@ const WeeklyLivestreams = () => {
                     <div className="flex flex-col gap-1 mt-1 mb-2">
                         <button
                             onClick={() => setView('folders')}
-                            className="flex items-center gap-2 text-zinc-500 hover:text-white mb-4 transition-colors w-fit font-semibold text-sm tracking-tight"
+                            className="flex items-center gap-2 text-[#787774] hover:text-black mb-4 transition-colors w-fit font-semibold text-sm tracking-tight"
                         >
                             <ArrowRight className="w-4 h-4 rotate-180" />
                             <span>All Archives</span>
                         </button>
-                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tighter text-white">
+                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tighter text-[#37352f]">
                             {selectedYear} Archive.
                         </h1>
-                        <p className="text-zinc-500 text-lg font-medium tracking-tight">
+                        <p className="text-[#787774] text-lg font-medium tracking-tight">
                             Live session recordings for {selectedYear}.
                         </p>
                     </div>
 
                     {/* Cinematic Player Container */}
-                    <div className="relative group/player rounded-[3rem] overflow-hidden bg-[#101010] border border-white/[0.05] shrink-0 shadow-2xl">
+                    <div className="relative group/player rounded-[3rem] overflow-hidden bg-white border border-[#e9e9e7] shrink-0 shadow-sm">
                         <div className="relative w-full aspect-video bg-black">
                             {activeVideo ? (
                                 <SecureVideoPlayer
@@ -268,21 +268,21 @@ const WeeklyLivestreams = () => {
                             ) : (
                                 <div className="absolute inset-0 flex items-center justify-center bg-black">
                                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
-                                    <p className="relative z-10 text-zinc-500 font-medium">Select a session to begin watching</p>
+                                    <p className="relative z-10 text-white font-medium">Select a session to begin watching</p>
                                 </div>
                             )}
                         </div>
 
                         {/* Video Meta Data */}
-                        <div className="h-auto md:h-24 bg-[#101010] border-t border-white/[0.05] p-6 md:px-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shrink-0">
+                        <div className="h-auto md:h-24 bg-white border-t border-[#e9e9e7] p-6 md:px-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shrink-0">
                             <div className="space-y-2 flex-1 min-w-0">
-                                <div className="inline-flex items-center px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">
+                                <div className="inline-flex items-center px-3 py-1 rounded-full bg-[#F7F7F5] border border-[#e9e9e7] text-[10px] font-bold uppercase tracking-widest text-[#787774] mb-1">
                                     Session Playback
                                 </div>
-                                <h2 className="text-xl md:text-3xl font-semibold tracking-tight text-white line-clamp-1">{activeVideo?.title}</h2>
-                                <div className="flex items-center gap-4 text-xs font-bold text-zinc-500 uppercase tracking-widest">
+                                <h2 className="text-xl md:text-3xl font-semibold tracking-tight text-[#37352f] line-clamp-1">{activeVideo?.title}</h2>
+                                <div className="flex items-center gap-4 text-xs font-bold text-[#787774] uppercase tracking-widest">
                                     <span className="flex items-center gap-1.5"><Calendar size={12} strokeWidth={2.5}/> {activeVideo?.date}</span>
-                                    <span className="w-1 h-1 bg-zinc-600 rounded-full" />
+                                    <span className="w-1 h-1 bg-[#e9e9e7] rounded-full" />
                                     <span className="flex items-center gap-1.5"><Clock size={12} strokeWidth={2.5}/> {activeVideo?.duration}</span>
                                 </div>
                             </div>
@@ -303,10 +303,10 @@ const WeeklyLivestreams = () => {
                                 }}
                                 disabled={completedVideos.has(activeVideoId)}
                                 className={cn(
-                                    "w-full md:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-full font-semibold transition-all duration-300 text-sm",
+                                    "w-full md:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-full font-semibold transition-all duration-300 text-sm shadow-sm",
                                     completedVideos.has(activeVideoId)
-                                        ? "bg-[#1A1A1A] text-zinc-500 border border-white/5 cursor-default"
-                                        : "bg-white hover:bg-zinc-200 text-black hover:scale-[1.02] active:scale-95 shadow-xl"
+                                        ? "bg-[#F7F7F5] text-[#787774] border border-[#e9e9e7] cursor-default"
+                                        : "bg-[#37352f] hover:bg-black text-white hover:scale-[1.02] active:scale-95 shadow-md"
                                 )}
                             >
                                 {completedVideos.has(activeVideoId) ? (
@@ -327,12 +327,12 @@ const WeeklyLivestreams = () => {
             </div>
 
             {/* Sidebar: Playlist */}
-            <div className="w-full lg:w-[450px] xl:w-[500px] shrink-0 border-t lg:border-t-0 lg:border-l border-white/[0.05] flex flex-col h-[50vh] lg:h-full z-20 bg-[#0a0a0a]">
-                <div className="p-6 lg:p-10 border-b border-white/[0.05] bg-[#0a0a0a] sticky top-0 z-10">
+            <div className="w-full lg:w-[450px] xl:w-[500px] shrink-0 border-t lg:border-t-0 lg:border-l border-[#e9e9e7] flex flex-col h-[50vh] lg:h-full z-20 bg-[#F7F7F5]">
+                <div className="p-6 lg:p-10 border-b border-[#e9e9e7] bg-[#F7F7F5] sticky top-0 z-10">
                     <div className="flex items-center justify-between mb-2">
                         <div className="flex flex-col gap-1">
-                            <h2 className="text-3xl font-semibold tracking-tight text-white">Playlist.</h2>
-                            <p className="text-[10px] uppercase tracking-widest font-bold text-zinc-500">Weekly Sessions</p>
+                            <h2 className="text-3xl font-semibold tracking-tight text-[#37352f]">Playlist.</h2>
+                            <p className="text-[10px] uppercase tracking-widest font-bold text-[#787774]">Weekly Sessions</p>
                         </div>
                     </div>
                 </div>
@@ -347,8 +347,8 @@ const WeeklyLivestreams = () => {
                                 <div key={month.id} className={cn(
                                     "rounded-[2.5rem] overflow-hidden border transition-all duration-500 relative",
                                     isOpen && !month.locked
-                                        ? "bg-[#101010] border-white/10 shadow-lg"
-                                        : "bg-[#0a0a0a] border-white/[0.02] hover:bg-[#121212] hover:border-white/[0.05]"
+                                        ? "bg-white border-[#e9e9e7] shadow-sm"
+                                        : "bg-transparent border-transparent hover:bg-white hover:border-[#e9e9e7] hover:shadow-sm"
                                 )}>
                                     <button
                                         onClick={() => !month.locked && toggleMonth(month.id)}
@@ -356,25 +356,25 @@ const WeeklyLivestreams = () => {
                                     >
                                         <div className="flex items-center gap-5">
                                             {month.locked ? (
-                                                <div className="w-14 h-14 rounded-[1.5rem] flex items-center justify-center bg-black border border-white/5 shrink-0">
-                                                    <Lock size={18} className="text-zinc-600" />
+                                                <div className="w-14 h-14 rounded-[1.5rem] flex items-center justify-center bg-white border border-[#e9e9e7] shadow-sm shrink-0">
+                                                    <Lock size={18} className="text-[#787774]" />
                                                 </div>
                                             ) : (
                                                 <div className={cn(
-                                                    "w-14 h-14 rounded-[1.5rem] flex items-center justify-center text-xl font-semibold transition-colors duration-500 shrink-0 shadow-inner",
-                                                    isOpen ? "bg-white text-black" : "bg-black border border-white/5 text-zinc-400 group-hover:bg-white/5 group-hover:text-white"
+                                                    "w-14 h-14 rounded-[1.5rem] flex items-center justify-center text-xl font-semibold transition-colors duration-500 shrink-0 shadow-sm",
+                                                    isOpen ? "bg-[#37352f] text-white" : "bg-white border border-[#e9e9e7] text-[#787774] group-hover:bg-[#F7F7F5] group-hover:text-[#37352f]"
                                                 )}>
-                                                    <Calendar size={22} className={isOpen ? "stroke-black" : ""} strokeWidth={1.5} />
+                                                    <Calendar size={22} className={isOpen ? "stroke-white" : ""} strokeWidth={1.5} />
                                                 </div>
                                             )}
                                             <div className="flex flex-col gap-1 pr-4">
                                                 <span className={cn(
                                                     "text-lg font-semibold tracking-tight transition-colors leading-snug",
-                                                    month.locked ? "text-zinc-600" : isOpen || hasActiveVideo ? "text-white" : "text-zinc-500 group-hover:text-white"
+                                                    month.locked ? "text-[#787774]" : isOpen || hasActiveVideo ? "text-[#37352f]" : "text-[#787774] group-hover:text-[#37352f]"
                                                 )}>
                                                     {month.title}
                                                 </span>
-                                                <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest mt-1">
+                                                <span className="text-[10px] text-[#787774] font-bold uppercase tracking-widest mt-1">
                                                     {month.videos.length} Videos
                                                 </span>
                                             </div>
@@ -382,7 +382,7 @@ const WeeklyLivestreams = () => {
                                         {!month.locked && (
                                              <div className={cn(
                                                 "w-8 h-8 rounded-full flex items-center justify-center transition-all shrink-0",
-                                                isOpen ? "bg-white/10 text-white" : "text-zinc-600 group-hover:bg-white/5 group-hover:text-white"
+                                                isOpen ? "bg-[#F7F7F5] text-[#37352f]" : "text-[#787774] group-hover:bg-white border border-transparent group-hover:border-[#e9e9e7] group-hover:text-[#37352f] shadow-sm"
                                             )}>
                                                 <ChevronDown size={18} strokeWidth={2} className={cn("transition-transform duration-500", isOpen && "rotate-180")} />
                                             </div>
@@ -397,7 +397,7 @@ const WeeklyLivestreams = () => {
                                                 exit={{ height: 0 }}
                                                 transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                                             >
-                                                <div className="flex flex-col gap-2 p-3 pb-6 border-t border-white/[0.02]">
+                                                <div className="flex flex-col gap-2 p-3 pb-6 border-t border-[#e9e9e7]">
                                                     {month.videos.map((video, idx) => {
                                                         const isActive = activeVideoId === video.videoId;
                                                         const isCompleted = completedVideos.has(video.videoId);
@@ -410,21 +410,21 @@ const WeeklyLivestreams = () => {
                                                                 className={cn(
                                                                     "w-full flex items-center gap-5 p-4 mx-1 rounded-3xl transition-all duration-300 text-left group relative border",
                                                                     isActive
-                                                                        ? "bg-[#1A1A1A] border-white/10 shadow-inner"
-                                                                        : "bg-transparent border-transparent hover:bg-white/[0.02]"
+                                                                        ? "bg-[#F7F7F5] border-[#e9e9e7] shadow-sm"
+                                                                        : "bg-transparent border-transparent hover:bg-[#F7F7F5] hover:border-[#e9e9e7]"
                                                                 )}
                                                             >
                                                                 <div className="shrink-0">
                                                                     {isActive ? (
-                                                                        <div className="w-12 h-12 rounded-[1.25rem] bg-white flex items-center justify-center shadow-lg transform scale-105 transition-transform">
-                                                                            <Play size={16} className="text-black fill-black ml-1" />
+                                                                        <div className="w-12 h-12 rounded-[1.25rem] bg-[#37352f] flex items-center justify-center shadow-sm transform scale-105 transition-transform">
+                                                                            <Play size={16} className="text-white fill-white ml-1" />
                                                                         </div>
                                                                     ) : isCompleted ? (
-                                                                         <div className="w-12 h-12 rounded-[1.25rem] bg-[#121212] border border-white/5 flex items-center justify-center text-green-500">
+                                                                         <div className="w-12 h-12 rounded-[1.25rem] bg-white border border-[#e9e9e7] flex items-center justify-center text-green-600 shadow-sm">
                                                                             <CheckCircle size={20} />
                                                                         </div>
                                                                     ) : (
-                                                                        <div className="w-12 h-12 rounded-[1.25rem] border border-white/5 bg-black flex items-center justify-center text-zinc-600 font-semibold group-hover:text-white group-hover:border-white/20 transition-all">
+                                                                        <div className="w-12 h-12 rounded-[1.25rem] border border-[#e9e9e7] bg-[#F7F7F5] flex items-center justify-center text-[#787774] font-semibold group-hover:bg-white group-hover:text-[#37352f] shadow-sm group-hover:shadow-md transition-all">
                                                                              {idx + 1}
                                                                         </div>
                                                                     )}
@@ -432,11 +432,11 @@ const WeeklyLivestreams = () => {
                                                                 <div className="flex-1 min-w-0 flex flex-col gap-1.5">
                                                                     <p className={cn(
                                                                         "text-sm font-semibold transition-colors line-clamp-2 leading-snug tracking-tight",
-                                                                        isActive ? "text-white" : "text-zinc-500 group-hover:text-zinc-200"
+                                                                        isActive ? "text-[#37352f]" : "text-[#787774] group-hover:text-[#37352f]"
                                                                     )}>
                                                                         {video.title}
                                                                     </p>
-                                                                    <p className="text-[10px] text-zinc-700 group-hover:text-zinc-500 font-bold uppercase tracking-widest transition-colors">
+                                                                    <p className="text-[10px] text-[#787774] group-hover:text-[#37352f] font-bold uppercase tracking-widest transition-colors">
                                                                         {video.duration}
                                                                     </p>
                                                                 </div>

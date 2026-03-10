@@ -15,7 +15,7 @@ import DailyReviews from './pages/DailyReviews';
 import Product from './pages/Product';
 import Pricing from './pages/Pricing';
 import ScheduledSessions from './pages/ScheduledSessions';
-import Calendar from './pages/Calendar';
+
 import { ThemeProvider } from "./components/ThemeProvider";
 import GordianParadox from './pages/GordianParadox';
 import SubscriptionExpired from './pages/SubscriptionExpired';
@@ -41,7 +41,7 @@ function App() {
                     <Route element={<DashboardLayout />}>
 
                         <Route path="/dashboard" element={<DashboardFolderView />} />
-                        <Route path="/dashboard/calendar" element={<Calendar />} />
+
                         <Route path="/daily-reviews" element={<DailyReviews />} />
                         <Route path="/dashboard/weekly-livestreams" element={<WeeklyLivestreams />} />
                         <Route path="/dashboard/market-mastery" element={<Navigate to="/dashboard/time-price-energy-intro" replace />} />
