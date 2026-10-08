@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Play, Clock, ChevronDown, Folder, Lock, CheckCircle, ArrowRight, TrendingUp } from 'lucide-react';
+import { Play, Clock, ChevronDown, Folder, CheckCircle, ArrowRight, TrendingUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { curriculumData } from '../data/curriculum';
 import { supabase } from '../lib/supabase';
-import { getUserAccessMap } from '../lib/accessEngine';
 import { cn } from "@/lib/utils";
 import VerificationModal from '../components/VerificationModal';
 
@@ -12,16 +11,12 @@ const Dashboard = () => {
     const firstWeek = curriculumData[0];
     const firstVideo = firstWeek.videos[0];
 
-    const [userSubscriptionType, setUserSubscriptionType] = useState(null);
     const [verificationStatus, setVerificationStatus] = useState(null); 
     const [userId, setUserId] = useState(null);
 
     const [activeVideoId, setActiveVideoId] = useState(null);
-    const [openWeekIds, setOpenWeekIds] = useState([firstWeek.id]);
-    const [accessMap, setAccessMap] = useState({});
-    const [accessLoading, setAccessLoading] = useState(true);
+    const [openWeekIds, setOpenWeekIds] = useState(curriculumData.map(week => week.id));
     const [completedVideos, setCompletedVideos] = useState(new Set());
-    const [loadingProgress, setLoadingProgress] = useState(true);
     const [markingComplete, setMarkingComplete] = useState(false);
 
     // Flattened list for sequential logic
@@ -32,96 +27,57 @@ const Dashboard = () => {
     useEffect(() => {
         const fetchData = async () => {
             const { data: { user } } = await supabase.auth.getUser();
+            let completedSet = new Set();
+
             if (user) {
                 setUserId(user.id);
                 // Fetch Profile for Subscription Type
                 const { data: profile } = await supabase
                     .from('profiles')
-                    .select('subscription_type, verification_status')
+                    .select('verification_status')
                     .eq('id', user.id)
                     .single();
 
                 if (profile) {
-                    setUserSubscriptionType(profile.subscription_type);
                     setVerificationStatus(profile.verification_status || 'none');
                 }
 
-                // 1. Fetch Access
-                const map = await getUserAccessMap(user);
-                setAccessMap(map);
-                setAccessLoading(false);
-
-                // 2. Fetch Video Progress
+                // Fetch Video Progress
                 const { data: progressData, error } = await supabase
                     .from('video_progress')
                     .select('video_id')
                     .eq('user_id', user.id);
 
-                let completedSet = new Set();
                 if (progressData) {
                     completedSet = new Set(progressData.map(p => p.video_id));
                     setCompletedVideos(completedSet);
                 } else if (error) {
                     console.warn("Could not fetch progress:", error);
                 }
+            }
 
-                // --- RESUME LOGIC ---
-                const nextVideo = allVideos.find(v => !completedSet.has(v.videoId));
-                const targetVideo = nextVideo || allVideos[allVideos.length - 1] || firstVideo;
+            // --- RESUME LOGIC ---
+            const nextVideo = allVideos.find(v => !completedSet.has(v.videoId));
+            const targetVideo = nextVideo || allVideos[allVideos.length - 1] || firstVideo;
 
-                if (targetVideo) {
-                    setActiveVideoId(targetVideo.videoId);
+            if (targetVideo) {
+                setActiveVideoId(targetVideo.videoId);
 
-                    const week = curriculumData.find(w => w.videos.some(v => v.videoId === targetVideo.videoId));
-                    if (week) {
-                        setOpenWeekIds(prev => [...new Set([...prev, week.id])]);
-                    }
-
-                    setTimeout(() => {
-                        const element = document.getElementById(`video-${targetVideo.videoId}`);
-                        if (element) {
-                            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        }
-                    }, 500);
+                const week = curriculumData.find(w => w.videos.some(v => v.videoId === targetVideo.videoId));
+                if (week) {
+                    setOpenWeekIds(prev => [...new Set([...prev, week.id])]);
                 }
 
-                setLoadingProgress(false);
+                setTimeout(() => {
+                    const element = document.getElementById(`video-${targetVideo.videoId}`);
+                    if (element) {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }, 500);
             }
         };
         fetchData();
     }, []);
-
-    // BLOCK ACCESS FOR INDICATORS ONLY SUBSCRIBERS
-    if (userSubscriptionType === 'indicators_only') {
-        return (
-            <div className="flex flex-col h-screen bg-black text-white font-sans items-center justify-center p-6 text-center selection:bg-white/20">
-                <div className="max-w-md w-full bg-[#101010] border border-white/[0.05] rounded-[2.5rem] p-10 flex flex-col items-center">
-                    <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-6">
-                        <Lock size={32} className="text-zinc-400" />
-                    </div>
-                    <h2 className="text-3xl font-semibold tracking-tight text-white mb-4">Access restricted.</h2>
-                    <p className="text-zinc-500 font-medium mb-10 leading-relaxed">
-                        You're on the <strong>Indicators Only</strong> plan. 
-                        The Learning Dashboard is available on Standard, Extended, and Lifetime subscriptions.
-                    </p>
-                    <div className="flex flex-col gap-4 w-full">
-                        <button
-                            onClick={() => window.location.href = '/choose-plan'}
-                            className="w-full py-4 bg-white text-black font-semibold rounded-full transition-transform hover:scale-[1.02] active:scale-95"
-                        >
-                            Upgrade Plan
-                        </button>
-                        <button
-                            onClick={() => window.location.href = '/indicators'}
-                            className="w-full py-4 bg-[#1a1a1a] text-white font-medium rounded-full transition-transform hover:scale-[1.02] active:scale-95 hover:bg-[#202020]"
-                        >
-                            Go to Indicators
-                        </button>
-                    </div>
-                </div>
-            </div>
-        );
-    }
 
     if (verificationStatus === 'none' || verificationStatus === 'pending') {
         if (verificationStatus === 'none') {
@@ -158,24 +114,13 @@ const Dashboard = () => {
         }
     }
 
-    const isSequentialLocked = (videoId) => {
-        if (loadingProgress) return false; 
-        const index = allVideos.findIndex(v => v.videoId === videoId);
-        if (index <= 0) return false; 
-
-        const prevVideo = allVideos[index - 1];
-        return !completedVideos.has(prevVideo.videoId);
-    };
-
     const handlePlayAll = () => {
         if (firstVideo?.videoId) {
             setActiveVideoId(firstVideo.videoId);
         }
     };
 
-    const handleVideoClick = (videoId, weekId) => {
-        if (!accessMap[weekId]?.unlocked) return;
-        if (isSequentialLocked(videoId)) return;
+    const handleVideoClick = (videoId) => {
         if (videoId) setActiveVideoId(videoId);
     };
 
@@ -191,27 +136,23 @@ const Dashboard = () => {
                     .upsert({ user_id: user.id, video_id: activeVideoId }, { onConflict: 'user_id, video_id' });
 
                 if (error) throw error;
+            }
 
-                const newSet = new Set(completedVideos);
-                newSet.add(activeVideoId);
-                setCompletedVideos(newSet);
+            const newSet = new Set(completedVideos);
+            newSet.add(activeVideoId);
+            setCompletedVideos(newSet);
 
-                const currentIndex = allVideos.findIndex(v => v.videoId === activeVideoId);
-                const nextVideo = allVideos[currentIndex + 1];
+            const currentIndex = allVideos.findIndex(v => v.videoId === activeVideoId);
+            const nextVideo = allVideos[currentIndex + 1];
 
-                if (nextVideo) {
-                    const nextWeek = curriculumData.find(w => w.videos.some(v => v.videoId === nextVideo.videoId));
-                    if (nextWeek && accessMap[nextWeek.id]?.unlocked) {
-                        if (!openWeekIds.includes(nextWeek.id)) {
-                            setOpenWeekIds(prev => [...prev, nextWeek.id]);
-                        }
-                        setActiveVideoId(nextVideo.videoId);
-                    } else {
-                        alert("Great job! The next module is currently locked by your plan.");
-                    }
-                } else {
-                    alert("Congratulations! You have completed the entire curriculum.");
+            if (nextVideo) {
+                const nextWeek = curriculumData.find(w => w.videos.some(v => v.videoId === nextVideo.videoId));
+                if (nextWeek && !openWeekIds.includes(nextWeek.id)) {
+                    setOpenWeekIds(prev => [...prev, nextWeek.id]);
                 }
+                setActiveVideoId(nextVideo.videoId);
+            } else {
+                alert("Congratulations! You have completed the entire curriculum.");
             }
         } catch (err) {
             console.error("Error marking complete:", err);
@@ -363,7 +304,6 @@ const Dashboard = () => {
                     <AnimatePresence initial={false}>
                         {curriculumData.map((week) => {
                             const isOpen = openWeekIds.includes(week.id);
-                            const isWeekLocked = !accessLoading && !accessMap[week.id]?.unlocked;
 
                             return (
                                 <motion.div
@@ -380,25 +320,19 @@ const Dashboard = () => {
                                         className="w-full flex items-center justify-between p-6 text-left group"
                                     >
                                         <div className="flex items-center gap-6">
-                                            {isWeekLocked ? (
-                                                <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center shrink-0">
-                                                    <Lock size={20} className="text-zinc-600" />
-                                                </div>
-                                            ) : (
-                                                <div className={cn(
-                                                    "w-14 h-14 rounded-[1.25rem] flex items-center justify-center border shrink-0 transition-colors duration-500",
-                                                    isOpen
-                                                        ? "bg-white text-black border-white"
-                                                        : "bg-black border-white/10 text-white group-hover:bg-white/5"
-                                                )}>
-                                                    <Folder size={20} className={isOpen ? "fill-black" : ""} />
-                                                </div>
-                                            )}
+                                            <div className={cn(
+                                                "w-14 h-14 rounded-[1.25rem] flex items-center justify-center border shrink-0 transition-colors duration-500",
+                                                isOpen
+                                                    ? "bg-white text-black border-white"
+                                                    : "bg-black border-white/10 text-white group-hover:bg-white/5"
+                                            )}>
+                                                <Folder size={20} className={isOpen ? "fill-black" : ""} />
+                                            </div>
 
                                             <div className="flex flex-col gap-1">
                                                 <span className={cn(
                                                     "text-xl font-semibold tracking-tight transition-colors",
-                                                    isWeekLocked ? "text-zinc-600" : "text-zinc-400 group-hover:text-white",
+                                                    "text-zinc-400 group-hover:text-white",
                                                     isOpen && "text-white"
                                                 )}>
                                                     {week.title}
@@ -424,40 +358,20 @@ const Dashboard = () => {
                                         className="overflow-hidden"
                                     >
                                         <div className="flex flex-col gap-2 p-2 pb-6">
-                                            {isWeekLocked ? (
-                                                <div className="p-10 text-center bg-black rounded-3xl border border-white/[0.02] m-4">
-                                                    <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-6">
-                                                        <Lock className="w-6 h-6 text-zinc-400" />
-                                                    </div>
-                                                    <h3 className="text-xl font-semibold tracking-tight text-white mb-2">Module Locked</h3>
-                                                    <p className="text-sm font-medium text-zinc-500 mb-8 max-w-xs mx-auto">
-                                                        Upgrade your plan to access this specific content module.
-                                                    </p>
-                                                    <button
-                                                        onClick={() => window.location.href = '/choose-plan'}
-                                                        className="px-8 py-3 bg-white text-black text-sm font-semibold rounded-full hover:scale-105 transition-transform"
-                                                    >
-                                                        Upgrade Plan
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                week.videos.map((video, idx) => {
+                                            {week.videos.map((video, idx) => {
                                                     const isActive = activeVideoId === video.videoId;
                                                     const isCompleted = completedVideos.has(video.videoId);
-                                                    const isLocked = isSequentialLocked(video.videoId);
 
                                                     return (
                                                         <div
                                                             key={idx}
                                                             id={`video-${video.videoId}`}
-                                                            onClick={() => !isLocked && handleVideoClick(video.videoId, week.id)}
+                                                            onClick={() => handleVideoClick(video.videoId)}
                                                             className={cn(
                                                                 "group relative flex items-center gap-6 p-4 mx-4 rounded-2xl transition-all duration-300",
                                                                 isActive
                                                                     ? "bg-white/5 border border-white/10 cursor-default"
-                                                                    : isLocked
-                                                                        ? "bg-transparent opacity-40 cursor-not-allowed"
-                                                                        : "bg-transparent border border-transparent hover:bg-white/[0.03] cursor-pointer"
+                                                                    : "bg-transparent border border-transparent hover:bg-white/[0.03] cursor-pointer"
                                                             )}
                                                         >
                                                             <div className="shrink-0">
@@ -469,10 +383,6 @@ const Dashboard = () => {
                                                                     <div className="w-12 h-12 rounded-full border-2 border-zinc-700 flex items-center justify-center text-zinc-400 bg-black">
                                                                         <CheckCircle size={18} />
                                                                     </div>
-                                                                ) : isLocked ? (
-                                                                    <div className="w-12 h-12 rounded-full border border-white/5 bg-black flex items-center justify-center text-zinc-700">
-                                                                        <Lock size={16} />
-                                                                    </div>
                                                                 ) : (
                                                                     <div className="w-12 h-12 rounded-full border border-white/10 bg-black flex items-center justify-center text-zinc-500 font-semibold group-hover:text-white group-hover:border-white/30 transition-all">
                                                                         {idx + 1}
@@ -483,7 +393,7 @@ const Dashboard = () => {
                                                             <div className="flex-1 min-w-0 flex flex-col gap-1">
                                                                 <p className={cn(
                                                                     "text-base font-medium transition-colors",
-                                                                    isActive ? "text-white font-semibold" : isLocked ? "text-zinc-600" : "text-zinc-400 group-hover:text-zinc-200"
+                                                                    isActive ? "text-white font-semibold" : "text-zinc-400 group-hover:text-zinc-200"
                                                                 )}>
                                                                     {video.title}
                                                                 </p>
@@ -498,7 +408,7 @@ const Dashboard = () => {
                                                                 </div>
                                                             </div>
 
-                                                            {!isLocked && !isActive && (
+                                                            {!isActive && (
                                                                 <div className="opacity-0 group-hover:opacity-100 pr-4 translate-x-4 group-hover:translate-x-0 transition-all duration-300">
                                                                     <div className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-white bg-white/5">
                                                                         <Play size={16} className="ml-0.5" />
@@ -507,8 +417,7 @@ const Dashboard = () => {
                                                             )}
                                                         </div>
                                                     );
-                                                })
-                                            )}
+                                                })}
                                         </div>
                                     </motion.div>
                                 </motion.div>

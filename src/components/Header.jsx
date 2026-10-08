@@ -7,6 +7,7 @@ const Header = () => {
     const [scrolled, setScrolled] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const location = useLocation();
+    const memberRoute = ['/pricing', '/choose-plan', '/payment', '/subscription-expired', '/auth/callback'].includes(location.pathname.toLowerCase());
 
     useEffect(() => {
         const handleScroll = () => {
@@ -24,7 +25,7 @@ const Header = () => {
 
     return (
         <header
-            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-[#12151d]/80 backdrop-blur-md border-b border-white/5 py-4' : 'bg-transparent py-6'
+            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${memberRoute ? 'member-public-header' : ''} ${scrolled ? 'bg-[#12151d]/80 backdrop-blur-md border-b border-white/5 py-4' : 'bg-transparent py-6'
                 }`}
         >
             <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
@@ -55,6 +56,8 @@ const Header = () => {
 
                 {/* Mobile Menu Toggle */}
                 <button
+                    aria-label={mobileMenuOpen ? 'Close navigation' : 'Open navigation'}
+                    aria-expanded={mobileMenuOpen}
                     className="md:hidden text-white relative z-50"
                     onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 >

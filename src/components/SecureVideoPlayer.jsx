@@ -3,8 +3,11 @@ import YouTube from 'react-youtube';
 import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, Loader2, Settings, Check, Languages } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from "@/lib/utils";
+import { createWatchTracker } from '../lib/videoProgress';
 
-const SecureVideoPlayer = ({ videoId, onComplete, onProgress, title, poster, watermarkText, className }) => {
+const SecureVideoPlayer = (props) => <VideoPlaybackSession key={props.videoId} {...props} />;
+
+const VideoPlaybackSession = ({ videoId, onComplete, onProgress, onWatchStatus, title, poster, watermarkText, className }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [progress, setProgress] = useState(0);
     const [currentTime, setCurrentTime] = useState(0);
@@ -15,6 +18,7 @@ const SecureVideoPlayer = ({ videoId, onComplete, onProgress, title, poster, wat
     const [isLoading, setIsLoading] = useState(true);
     const [showControls, setShowControls] = useState(true);
     const [hasStarted, setHasStarted] = useState(false);
+    const [playbackError, setPlaybackError] = useState(false);
 
     const [qualities, setQualities] = useState([]);
     const [currentQuality, setCurrentQuality] = useState('auto');
@@ -27,6 +31,29 @@ const SecureVideoPlayer = ({ videoId, onComplete, onProgress, title, poster, wat
     const containerRef = useRef(null);
     const controlsTimeoutRef = useRef(null);
     const progressIntervalRef = useRef(null);
+    const watchTrackerRef = useRef(createWatchTracker());
+    const eligibleRef = useRef(false);
+    const completedRef = useRef(false);
+    const mountedRef = useRef(true);
+    const callbacksRef = useRef({ onComplete, onProgress, onWatchStatus });
+    callbacksRef.current = { onComplete, onProgress, onWatchStatus };
+
+    const samplePlayback = () => {
+        if (!mountedRef.current || !playerRef.current) return false;
+        const player = playerRef.current;
+        const curr = player.getCurrentTime();
+        const dur = player.getDuration();
+        setCurrentTime(curr);
+        setDuration(dur);
+        setProgress(dur > 0 ? (curr / dur) * 100 : 0);
+        callbacksRef.current.onProgress?.(curr);
+        const eligible = watchTrackerRef.current.sample(curr, dur, performance.now(), player.getPlaybackRate?.() || 1);
+        if (eligible !== eligibleRef.current) {
+            eligibleRef.current = eligible;
+            callbacksRef.current.onWatchStatus?.(videoId, eligible);
+        }
+        return eligible;
+    };
 
     // Format time (seconds -> MM:SS)
     const formatTime = (seconds) => {
@@ -43,6 +70,7 @@ const SecureVideoPlayer = ({ videoId, onComplete, onProgress, title, poster, wat
     };
 
     const handleReady = (event) => {
+        if (!mountedRef.current) return;
         playerRef.current = event.target;
         setDuration(event.target.getDuration());
         setIsLoading(false);
@@ -58,19 +86,32 @@ const SecureVideoPlayer = ({ videoId, onComplete, onProgress, title, poster, wat
     };
 
     const handleStateChange = (event) => {
+        if (!mountedRef.current || event.target !== playerRef.current) return;
         // YT.PlayerState.PLAYING = 1, PAUSED = 2, ENDED = 0
         if (event.data === 1) {
             setIsPlaying(true);
             setIsLoading(false);
+            watchTrackerRef.current.start(event.target.getCurrentTime(), performance.now());
             startProgressLoop();
             updateQualities();
         } else if (event.data === 2) {
+            samplePlayback();
             setIsPlaying(false);
             stopProgressLoop();
+            watchTrackerRef.current.pause();
         } else if (event.data === 0) {
+            const eligible = samplePlayback();
             setIsPlaying(false);
             stopProgressLoop();
-            if (onComplete) onComplete();
+            watchTrackerRef.current.pause();
+            if (eligible && !completedRef.current) {
+                completedRef.current = true;
+                callbacksRef.current.onComplete?.(videoId);
+            }
+        } else {
+            stopProgressLoop();
+            watchTrackerRef.current.pause();
+            setIsPlaying(false);
         }
     };
 
@@ -128,14 +169,7 @@ const SecureVideoPlayer = ({ videoId, onComplete, onProgress, title, poster, wat
     const startProgressLoop = () => {
         stopProgressLoop();
         progressIntervalRef.current = setInterval(() => {
-            if (playerRef.current) {
-                const curr = playerRef.current.getCurrentTime();
-                const dur = playerRef.current.getDuration();
-                setCurrentTime(curr);
-                setDuration(dur);
-                setProgress((curr / dur) * 100);
-                if (onProgress) onProgress(curr);
-            }
+            samplePlayback();
         }, 1000);
     };
 
@@ -163,6 +197,7 @@ const SecureVideoPlayer = ({ videoId, onComplete, onProgress, title, poster, wat
         const newTime = percentage * duration;
 
         if (playerRef.current) {
+            watchTrackerRef.current.pause();
             playerRef.current.seekTo(newTime, true);
             setCurrentTime(newTime);
             setProgress(percentage * 100);
@@ -239,7 +274,10 @@ const SecureVideoPlayer = ({ videoId, onComplete, onProgress, title, poster, wat
     };
 
     useEffect(() => {
+        mountedRef.current = true;
+        callbacksRef.current.onWatchStatus?.(videoId, false);
         return () => {
+            mountedRef.current = false;
             stopProgressLoop();
             if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
         };
@@ -258,7 +296,7 @@ const SecureVideoPlayer = ({ videoId, onComplete, onProgress, title, poster, wat
             ref={containerRef}
             className={cn(
                 "relative w-full aspect-video bg-transparent overflow-hidden group select-none",
-                isFullscreen ? "rounded-none" : "rounded-3xl",
+                "rounded-none",
                 className
             )}
             onMouseMove={handleMouseMove}
@@ -289,6 +327,7 @@ const SecureVideoPlayer = ({ videoId, onComplete, onProgress, title, poster, wat
                     }}
                     onReady={handleReady}
                     onStateChange={handleStateChange}
+                    onError={() => { stopProgressLoop(); watchTrackerRef.current.pause(); setIsPlaying(false); setIsLoading(false); setPlaybackError(true); }}
                 />
             </div>
 
@@ -321,7 +360,8 @@ const SecureVideoPlayer = ({ videoId, onComplete, onProgress, title, poster, wat
             />
 
             {/* 3. Loading / Initial State Overlay */}
-            {(!hasStarted || isLoading) && (
+            {playbackError && <div role="alert" className="absolute inset-0 z-20 flex items-center justify-center bg-[#0b0d10] px-8 text-center text-sm text-[#9aa5b5]">This video could not be loaded. Please refresh the page or choose another lesson.</div>}
+            {!playbackError && (!hasStarted || isLoading) && (
                 <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/10 backdrop-blur-sm pointer-events-none">
                     {isLoading ? (
                         <Loader2 className="w-12 h-12 text-white animate-spin" />
@@ -352,11 +392,31 @@ const SecureVideoPlayer = ({ videoId, onComplete, onProgress, title, poster, wat
                         {/* Progress Bar */}
                         <div
                             className="relative w-full h-1.5 bg-white/20 rounded-full cursor-pointer mb-6 group/progress flex items-center"
+                            role="slider"
+                            tabIndex={0}
+                            aria-label="Video position"
+                            aria-valuemin={0}
+                            aria-valuemax={100}
+                            aria-valuenow={Math.round(progress)}
+                            aria-valuetext={`${formatTime(currentTime)} of ${formatTime(duration)}`}
+                            onKeyDown={(event) => {
+                                let nextTime;
+                                if (event.key === 'ArrowLeft') nextTime = Math.max(0, currentTime - 5);
+                                if (event.key === 'ArrowRight') nextTime = Math.min(duration, currentTime + 5);
+                                if (event.key === 'Home') nextTime = 0;
+                                if (event.key === 'End') nextTime = duration;
+                                if (nextTime === undefined || !playerRef.current || duration <= 0) return;
+                                event.preventDefault();
+                                watchTrackerRef.current.pause();
+                                playerRef.current.seekTo(nextTime, true);
+                                setCurrentTime(nextTime);
+                                setProgress(nextTime / duration * 100);
+                            }}
                             onClick={(e) => { e.stopPropagation(); handleSeek(e); }}
                             onMouseDown={(e) => e.stopPropagation()}
                         >
                             <div
-                                className="absolute top-0 left-0 h-full bg-indigo-500 rounded-full pointer-events-none"
+                                className="absolute top-0 left-0 h-full bg-white rounded-full pointer-events-none"
                                 style={{ width: `${progress}%` }}
                             />
                             {/* Hover Thumb */}
@@ -368,22 +428,23 @@ const SecureVideoPlayer = ({ videoId, onComplete, onProgress, title, poster, wat
 
                         {/* Buttons Row */}
                         <div className="flex items-center justify-between pointer-events-auto" onClick={(e) => e.stopPropagation()}>
-                            <div className="flex items-center gap-6">
-                                <button onClick={togglePlay} className="text-white hover:text-indigo-400 transition-colors focus:outline-none">
+                            <div className="flex items-center gap-3 md:gap-6">
+                                <button type="button" aria-label={isPlaying ? 'Pause video' : 'Play video'} onClick={togglePlay} className="text-white hover:text-white/70 transition-colors">
                                     {isPlaying ? <Pause size={28} className="fill-white" /> : <Play size={28} className="fill-white" />}
                                 </button>
 
                                 <div className="flex items-center gap-3 group/vol">
-                                    <button onClick={toggleMute} className="text-white hover:text-indigo-400 transition-colors focus:outline-none">
+                                    <button type="button" aria-label={isMuted || volume === 0 ? 'Unmute video' : 'Mute video'} onClick={toggleMute} className="text-white hover:text-white/70 transition-colors">
                                         {isMuted || volume === 0 ? <VolumeX size={24} /> : <Volume2 size={24} />}
                                     </button>
                                     <input
                                         type="range"
+                                        aria-label="Video volume"
                                         min="0"
                                         max="100"
                                         value={isMuted ? 0 : volume}
                                         onChange={handleVolumeChange}
-                                        className="w-0 overflow-hidden group-hover/vol:w-24 transition-all duration-300 h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer focus:outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full hover:[&::-webkit-slider-thumb]:scale-125 transition-transform"
+                                        className="w-0 overflow-hidden group-hover/vol:w-16 group-focus-within/vol:w-16 transition-all duration-300 h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full"
                                     />
                                 </div>
 
@@ -392,12 +453,15 @@ const SecureVideoPlayer = ({ videoId, onComplete, onProgress, title, poster, wat
                                 </span>
                             </div>
 
-                            <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2 md:gap-4">
                                 {/* Settings Menu */}
                                 <div className="relative">
                                     <button
+                                        type="button"
+                                        aria-label="Video settings"
+                                        aria-expanded={showSettings}
                                         onClick={(e) => { e.stopPropagation(); setShowSettings(!showSettings); setSettingsTab('quality'); }}
-                                        className={cn("text-white hover:text-indigo-400 transition-colors focus:outline-none", showSettings && "text-indigo-400 rotate-45")}
+                                        className={cn("text-white hover:text-white/70 transition-colors focus:outline-none", showSettings && "text-white rotate-45")}
                                     >
                                         <Settings size={24} />
                                     </button>
@@ -441,7 +505,7 @@ const SecureVideoPlayer = ({ videoId, onComplete, onProgress, title, poster, wat
                                                                 onClick={() => handleQualityChange(q)}
                                                                 className={cn(
                                                                     "flex items-center justify-between w-full px-3 py-2 text-sm text-left rounded-lg transition-colors hover:bg-white/10",
-                                                                    currentQuality === q ? "text-indigo-400 bg-white/5" : "text-zinc-300"
+                                                                    currentQuality === q ? "text-white bg-white/5" : "text-zinc-300"
                                                                 )}
                                                             >
                                                                 <span>{qualityLabels[q] || q}</span>
@@ -457,7 +521,7 @@ const SecureVideoPlayer = ({ videoId, onComplete, onProgress, title, poster, wat
                                                                 onClick={() => handleLanguageChange(lang.code)}
                                                                 className={cn(
                                                                     "flex items-center justify-between w-full px-3 py-2 text-sm text-left rounded-lg transition-colors hover:bg-white/10",
-                                                                    captionLang === lang.code ? "text-indigo-400 bg-white/5" : "text-zinc-300"
+                                                                    captionLang === lang.code ? "text-white bg-white/5" : "text-zinc-300"
                                                                 )}
                                                             >
                                                                 <span>{lang.label}</span>
@@ -477,8 +541,8 @@ const SecureVideoPlayer = ({ videoId, onComplete, onProgress, title, poster, wat
                                 <button
                                     onClick={toggleCaptions}
                                     className={cn(
-                                        "text-white hover:text-indigo-400 transition-colors focus:outline-none relative",
-                                        captionsEnabled && "text-indigo-400"
+                                        "text-white hover:text-white/70 transition-colors focus:outline-none relative",
+                                        captionsEnabled && "text-white"
                                     )}
                                     title="Toggle Captions"
                                 >
@@ -500,12 +564,12 @@ const SecureVideoPlayer = ({ videoId, onComplete, onProgress, title, poster, wat
                                     {captionsEnabled && (
                                         <motion.div
                                             layoutId="caption-dot"
-                                            className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-indigo-400"
+                                            className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-white"
                                         />
                                     )}
                                 </button>
 
-                                <button onClick={toggleFullscreen} className="text-white hover:text-indigo-400 transition-colors focus:outline-none">
+                                <button type="button" aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'} onClick={toggleFullscreen} className="text-white hover:text-white/70 transition-colors">
                                     {isFullscreen ? <Minimize size={24} /> : <Maximize size={24} />}
                                 </button>
                             </div>

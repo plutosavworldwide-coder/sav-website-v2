@@ -5,6 +5,8 @@ node_modules
 
 # Testing
 coverage
+tests/integration/subject.mjs
+tests/integration/layout.subject.mjs
 
 # Production
 dist

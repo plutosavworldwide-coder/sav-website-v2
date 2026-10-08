@@ -95,7 +95,7 @@ const AdminPage = () => {
 
     // Stat Card Component
     const StatCard = ({ icon: Icon, label, value, color }) => (
-        <div className="bg-white dark:bg-[#1A1D25] border border-neutral-200 dark:border-white/[0.06] rounded-xl p-4 flex items-center gap-4 shadow-sm dark:shadow-none">
+        <div className="bg-white dark:bg-[var(--dash-panel)] border border-neutral-200 dark:border-white/[0.06] rounded-xl p-4 flex items-center gap-4 shadow-sm dark:shadow-none">
             <div className={`w-12 h-12 rounded-xl ${color} flex items-center justify-center`}>
                 <Icon className="w-6 h-6 text-zinc-900 dark:text-white" />
             </div>
@@ -107,7 +107,7 @@ const AdminPage = () => {
     );
 
     return (
-        <div className="min-h-screen text-zinc-900 dark:text-white p-6 space-y-6">
+        <div className="dash-page space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
@@ -136,7 +136,7 @@ const AdminPage = () => {
             {/* Main Content */}
             <div className="flex gap-6">
                 {/* User List */}
-                <div className="flex-1 bg-white dark:bg-[#09090b] border border-neutral-200 dark:border-white/[0.06] rounded-2xl overflow-hidden shadow-sm dark:shadow-none">
+                <div className="flex-1 bg-white dark:bg-[var(--dash-panel)] border border-neutral-200 dark:border-white/[0.06] rounded-2xl overflow-hidden shadow-sm dark:shadow-none">
                     {/* Search */}
                     <div className="p-4 border-b border-neutral-200 dark:border-white/[0.06]">
                         <div className="relative">
@@ -187,7 +187,7 @@ const AdminPage = () => {
                                         >
                                             <td className="px-4 py-3">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-xs font-bold">
+                                                    <div className="w-8 h-8 rounded-full bg-[var(--dash-panel-raised)] text-[var(--dash-text)] border border-[var(--dash-border)] flex items-center justify-center text-xs font-bold">
                                                         {user.email?.charAt(0).toUpperCase() || '?'}
                                                     </div>
                                                     <div>
@@ -302,7 +302,7 @@ const AdminPage = () => {
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: 20 }}
-                            className="w-[400px] bg-white dark:bg-[#09090b] border border-neutral-200 dark:border-white/[0.06] rounded-2xl overflow-hidden shrink-0 shadow-lg dark:shadow-none"
+                            className="w-[400px] bg-white dark:bg-[var(--dash-panel)] border border-neutral-200 dark:border-white/[0.06] rounded-2xl overflow-hidden shrink-0 shadow-lg dark:shadow-none"
                         >
                             {/* Header */}
                             <div className="p-5 border-b border-neutral-200 dark:border-white/[0.06] flex items-center justify-between">

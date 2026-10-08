@@ -1,4 +1,4 @@
-import { Video, Clock, Activity, Calendar, Lock } from 'lucide-react';
+import { Video, Clock, Activity, Calendar } from 'lucide-react';
 
 export const livestreamsData = [
     {
@@ -523,7 +523,7 @@ export const livestreamsData = [
         title: "March 2026",
         monthIndex: 2,
         year: 2026,
-        locked: true,
+        locked: false,
         videos: []
     }
 ];

@@ -1,0 +1,4 @@
+import { build } from '../../node_modules/esbuild/lib/main.js';
+import path from 'node:path';
+const mocksPath = path.resolve('mocks.jsx');
+await build({entryPoints:['entry.jsx'],outfile:'subject.mjs',bundle:true,platform:'node',format:'esm',banner:{js:"import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);"},jsx:'automatic',external:['react','react/jsx-runtime'],loader:{'.css':'empty'},plugins:[{name:'test-fixtures',setup(build){build.onResolve({filter:/react-youtube|react-router-dom|framer-motion|lib\/supabase|data\/curriculum|DashboardContext/},()=>({path:mocksPath}));build.onLoad({filter:/mocks\.jsx$/},async()=>{const fs=await import('node:fs');return {contents:fs.readFileSync(mocksPath,'utf8')+'\nexport default YouTube;',loader:'jsx'};});}}],alias:{'@':path.resolve('../../src')}});

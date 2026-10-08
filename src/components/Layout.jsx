@@ -4,12 +4,15 @@ import Header from './Header';
 
 // ... imports
 import { Outlet } from 'react-router-dom';
+import { useTheme } from './ThemeProvider';
 
 const Layout = () => {
     const location = useLocation();
+    const { resolvedTheme } = useTheme();
+    const memberRoute = ['/pricing', '/choose-plan', '/payment', '/subscription-expired', '/auth/callback'].includes(location.pathname.toLowerCase());
 
     return (
-        <div className="min-h-screen bg-pageBg text-textMain relative overflow-hidden font-sans selection:bg-appleBlue selection:text-white">
+        <div className={`min-h-screen relative overflow-hidden font-sans ${memberRoute ? `dashboard-theme ${resolvedTheme}` : 'bg-pageBg text-textMain selection:bg-appleBlue selection:text-white'}`}>
             {/* Clean Flat Background */}
             <Header />
 

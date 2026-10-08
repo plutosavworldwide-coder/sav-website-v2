@@ -1,4 +1,4 @@
-import { BarChart2, TrendingUp, TrendingDown, Circle, Clock, Zap, Target, Layers, Compass, Lock, AlertTriangle, Activity, BookOpen, Brain, Shield } from 'lucide-react';
+import { BarChart2, TrendingUp, TrendingDown, Circle, Clock, Zap, Target, Layers, Compass, AlertTriangle, Activity, BookOpen, Brain, Shield } from 'lucide-react';
 
 export const curriculumData = [
     {
@@ -45,7 +45,7 @@ export const curriculumData = [
         id: "week-5",
         title: "Week 5 — Reinforcement",
         videos: [
-            { number: 1, title: "Reinforcing Time-Intent Alignment", duration: "25:00", views: "1.1m", time: "1y ago", icon: <Lock size={32} />, color: "from-zinc-800 to-zinc-900", iconColor: "text-zinc-500", videoId: "99FJIe54iR4" },
+            { number: 1, title: "Reinforcing Time-Intent Alignment", duration: "25:00", views: "1.1m", time: "1y ago", icon: <Target size={32} />, color: "from-zinc-800 to-zinc-900", iconColor: "text-zinc-500", videoId: "99FJIe54iR4" },
             { number: 2, title: "Revisiting Time Extremes & Reactions", duration: "22:00", views: "900k", time: "1y ago", icon: <TrendingUp size={32} />, color: "from-zinc-800 to-zinc-900", iconColor: "text-zinc-500", videoId: "7jIFYDAALfc" },
             { number: 3, title: "Time Compression & Expansion Concepts", duration: "28:00", views: "850k", time: "1y ago", icon: <Activity size={32} />, color: "from-zinc-800 to-zinc-900", iconColor: "text-zinc-500", videoId: "J1gd7p4qFqs" },
             { number: 4, title: "Market Rhythm & Temporal Flow", duration: "30:00", views: "950k", time: "1y ago", icon: <Zap size={32} />, color: "from-zinc-800 to-zinc-900", iconColor: "text-zinc-500", videoId: "893oQBz3ax0" },

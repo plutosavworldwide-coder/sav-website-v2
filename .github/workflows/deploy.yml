@@ -1,4 +1,4 @@
-name: Deploy to Vercel
+name: Validate dashboard
 
 on:
   push:
@@ -6,9 +6,16 @@ on:
       - main
 
 jobs:
-  deploy:
+  validate:
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Vercel Deploy Hook
-        run: |
-          curl -X POST "https://api.vercel.com/v1/integrations/deploy/prj_m1mozhHxKVHQ4FfpISbYKprNO9a3/N6meyEEf5w"
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm ci --prefix tests/integration
+      - run: npm run test:integration
+      - run: npm run build

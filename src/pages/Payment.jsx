@@ -1,61 +1,56 @@
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ShieldCheck, CheckCircle2, DollarSign, TrendingUp, Activity, Lock, ChevronLeft } from 'lucide-react';
+import { ArrowLeft, Check, Loader2, ShieldCheck } from 'lucide-react';
 
 import { supabase } from '../lib/supabase';
 import { PAYPAL_CONFIG, PAYPAL_PLANS } from '../lib/config';
+import { resolvePurchasePlan } from '../lib/purchasePlans';
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { useState, useEffect } from 'react';
-import { cn } from "@/lib/utils";
+import { useTheme } from '../components/ThemeProvider';
 
 const Payment = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { resolvedTheme } = useTheme();
     const [error, setError] = useState(null);
 
-    // Default to Standard Plan if accessed directly
-    const selectedPlan = location.state?.plan || {
-        name: "Standard Access",
-        price: "80",
-        period: "/month",
-        features: ["Standard Access"]
-    };
-
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.1,
-                delayChildren: 0.2
-            }
-        }
-    };
-
-    const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] }
-        }
-    };
+    // Reject retired/unknown choices and ignore prices carried in browser state.
+    const selectedPlan = resolvePurchasePlan(location.state?.plan);
 
     const [user, setUser] = useState(null);
+    const [authLoading, setAuthLoading] = useState(true);
+    const [authAttempt, setAuthAttempt] = useState(0);
 
     // Check Auth & Fetch User
     useEffect(() => {
+        if (!selectedPlan) return;
+        let current = true;
+        setAuthLoading(true);
+        setUser(null);
+        setError(null);
         const checkUser = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
-                // Not logged in? Go to sign in, then come back here
-                navigate('/signing', { state: { plan: selectedPlan } });
-                return;
+            try {
+                const { data: { user }, error: authError } = await supabase.auth.getUser();
+                if (!current) return;
+                if (authError) throw authError;
+                if (!user) {
+                    navigate('/signing', { state: { plan: selectedPlan }, replace: true });
+                    return;
+                }
+                setUser(user);
+            } catch {
+                if (current) setError('We could not verify your account. Please try again before continuing to payment.');
+            } finally {
+                if (current) setAuthLoading(false);
             }
-            setUser(user);
         };
         checkUser();
-    }, [navigate, selectedPlan]);
+        return () => { current = false; };
+    }, [navigate, selectedPlan, authAttempt]);
+
+    if (!selectedPlan) return <Navigate to="/choose-plan" replace state={{ planUnavailable: true }} />;
+    if (authLoading || !user) return <div className={`dashboard-theme ${resolvedTheme} min-h-[calc(100dvh-80px)] flex items-center justify-center px-6`}><div className="dash-panel max-w-md p-6 text-center">{authLoading ? <><Loader2 size={22} className="mx-auto mb-4 animate-spin text-[var(--dash-subtle)]" /><p role="status" className="text-sm text-[var(--dash-muted)]">Verifying your account before checkout…</p></> : <><p role="alert" className="text-sm text-[var(--dash-error)]">{error || 'Sign in to continue to checkout.'}</p><button type="button" onClick={() => setAuthAttempt(value => value + 1)} className="dash-primary mt-5">Try again</button><Link to="/choose-plan" className="mt-4 block text-xs text-[var(--dash-muted)] hover:text-[var(--dash-text)]">Back to plans</Link></>}</div></div>;
 
     const TAX_RATE = 0.08; // 8% Tax/Fee
     const basePrice = parseFloat(selectedPlan.price.replace(/,/g, ''));
@@ -63,7 +58,7 @@ const Payment = () => {
     const totalAmount = basePrice + taxAmount;
 
     // Determine PayPal Options based on Plan Type
-    const isLifetime = selectedPlan.name === "Lifetime Edition" || selectedPlan.name === "Lifetime Plan";
+    const isLifetime = selectedPlan.name === "Lifetime Edition";
     const paypalOptions = {
         "client-id": PAYPAL_CONFIG.clientId,
         currency: PAYPAL_CONFIG.currency,
@@ -71,121 +66,27 @@ const Payment = () => {
         vault: !isLifetime // Vault required for subscriptions
     };
 
-    return (
-        <PayPalScriptProvider options={paypalOptions} key={paypalOptions.intent}>
-            <div className="flex flex-col min-h-screen bg-black text-white font-sans selection:bg-white/20">
-                {/* Header / Nav */}
-                <div className="w-full max-w-7xl mx-auto px-6 py-6 md:px-12 md:py-8 flex justify-between items-center z-20 relative">
-                    <button
-                        onClick={() => navigate('/choose-plan')}
-                        className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors w-fit font-medium text-sm"
-                    >
-                        <ChevronLeft className="w-4 h-4" />
-                        <span>Back to Plans</span>
-                    </button>
-                </div>
-
-                {/* Main Content */}
-                <div className="flex-1 flex flex-col md:flex-row items-center justify-center p-6 md:p-12 relative z-10 w-full max-w-7xl mx-auto gap-12 lg:gap-24">
-                    
-                    {/* Left Side - Details */}
-                    <div className="w-full lg:w-1/2 flex flex-col justify-center">
-                        <motion.div
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                            className="bg-[#101010] border border-white/5 rounded-full px-4 py-2 inline-flex items-center gap-2 w-fit mb-8 shadow-xl"
-                        >
-                            <Lock className="w-3.5 h-3.5 text-white" />
-                            <span className="text-[11px] font-bold tracking-widest uppercase text-white">Secure Encrypted Checkout</span>
-                        </motion.div>
-
-                        <motion.h1
-                            initial={{ opacity: 0, y: 30 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 }}
-                            className="text-5xl md:text-7xl font-semibold mb-8 leading-tight tracking-tighter"
-                        >
-                            Complete your <br />
-                            <span className="text-zinc-500">transaction.</span>
-                        </motion.h1>
-
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.3, duration: 0.8 }}
-                            className="flex items-start gap-6 p-8 rounded-[2rem] bg-[#101010] border border-white/[0.05] hover:border-white/10 hover:bg-[#121212] transition-colors"
-                        >
-                            <div className="w-14 h-14 rounded-2xl bg-white text-black flex items-center justify-center shrink-0 shadow-lg select-none">
-                                <CheckCircle2 className="w-7 h-7" strokeWidth={2.5} />
-                            </div>
-                            <div className="flex flex-col gap-2">
-                                <div className="text-white font-semibold text-2xl tracking-tight">{selectedPlan.name}</div>
-                                <div className="text-base text-zinc-400 font-medium leading-relaxed">
-                                    Instant access to all features included in the {selectedPlan.name} tier. Setup is immediate.
-                                </div>
-                            </div>
-                        </motion.div>
-                        
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.5 }}
-                            className="mt-12 text-[10px] text-zinc-600 font-bold uppercase tracking-widest"
-                        >
-                            ENCRYPTION: AES-256 • BANK-GRADE PROTOCOLS
-                        </motion.div>
-                    </div>
-
-                    {/* Right Side - Payment Form */}
-                    <div className="w-full lg:w-1/2 relative flex items-center justify-center">
-                        <motion.div
-                            variants={containerVariants}
-                            initial="hidden"
-                            animate="visible"
-                            className="w-full max-w-lg p-8 md:p-12 bg-[#101010] rounded-[2.5rem] border border-white/[0.05] shadow-2xl relative z-10"
-                        >
-                            <motion.div variants={itemVariants} className="flex justify-between items-end mb-10 border-b border-white/[0.05] pb-8">
-                                <div>
-                                    <h2 className="text-3xl font-semibold text-white tracking-tight">Checkout.</h2>
-                                    <p className="text-zinc-500 mt-1 font-medium text-sm">{selectedPlan.name}</p>
-                                </div>
-                                <div className="text-right flex flex-col items-end">
-                                    <div className="text-5xl font-semibold text-white tracking-tighter leading-none mb-1">€{basePrice.toFixed(2)}</div>
-                                    <div className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-3">{selectedPlan.period.replace('/', '')}</div>
-                                    <div className="text-[11px] font-bold text-zinc-600 uppercase tracking-widest flex flex-col items-end gap-1 w-full pt-3 border-t border-white/[0.05]">
-                                        <span className="flex justify-between w-32"><span>Base:</span> <span>€{basePrice.toFixed(2)}</span></span>
-                                        <span className="flex justify-between w-32"><span>Tax (8%):</span> <span>€{taxAmount.toFixed(2)}</span></span>
-                                        <span className="flex justify-between w-32 text-white pt-2 border-t border-white/10 mt-1 pb-1"><span>Total:</span> <span>€{totalAmount.toFixed(2)}</span></span>
-                                    </div>
-                                </div>
-                            </motion.div>
-
-                            {/* User Profile Display */}
-                            {user && (
-                                <motion.div variants={itemVariants} className="mb-10 p-5 bg-[#0a0a0a] rounded-2xl flex items-center gap-5 border border-white/[0.02]">
-                                    <div className="w-12 h-12 rounded-[1rem] bg-white text-black flex items-center justify-center text-lg font-bold shadow-lg">
-                                        {user.email.charAt(0).toUpperCase()}
-                                    </div>
-                                    <div className="overflow-hidden flex flex-col gap-0.5">
-                                        <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Billed To</div>
-                                        <div className="text-base font-semibold text-white truncate tracking-tight">{user.email}</div>
-                                    </div>
-                                </motion.div>
-                            )}
-
-                            <motion.div variants={itemVariants} className="space-y-6">
-                                {error && (
-                                    <div className="p-4 bg-red-500/10 text-red-500 font-semibold text-sm rounded-2xl border border-red-500/20 text-center">
-                                        {error}
-                                    </div>
-                                )}
-
-                                <div className="relative z-10 w-full rounded-2xl overflow-hidden shadow-2xl">
-                                    {selectedPlan.name === "Lifetime Edition" || selectedPlan.name === "Lifetime Plan" ? (
+    return <PayPalScriptProvider options={paypalOptions} key={paypalOptions.intent}>
+        <div className={`dashboard-theme ${resolvedTheme} min-h-[calc(100dvh-80px)] px-6 py-8 md:px-10 md:py-10`}>
+            <div className="mx-auto w-full max-w-[1050px]">
+                <button type="button" onClick={() => navigate('/choose-plan')} className="mb-7 inline-flex items-center gap-2 text-xs font-medium text-[var(--dash-muted)] transition-colors hover:text-[var(--dash-text)]"><ArrowLeft size={14} />Back to plans</button>
+                <header className="mb-8"><p className="dash-eyebrow mb-2">Your membership</p><h1 className="text-[28px] font-semibold leading-tight tracking-[-0.035em] text-[var(--dash-text)] md:text-[32px]">Complete your checkout</h1><p className="mt-3 text-sm leading-relaxed text-[var(--dash-muted)]">Review your membership and continue with PayPal.</p></header>
+                <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_400px]">
+                    <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="dash-panel overflow-hidden">
+                        <div className="border-b border-[var(--dash-border)] p-6"><p className="dash-eyebrow mb-3">Selected plan</p><h2 className="text-xl font-semibold tracking-tight text-[var(--dash-text)]">{selectedPlan.name}</h2><div className="mt-4 flex items-baseline gap-1.5"><span className="text-[36px] font-semibold leading-none tracking-[-0.04em] text-[var(--dash-text)]">€{basePrice.toFixed(2)}</span><span className="text-xs text-[var(--dash-muted)]">{selectedPlan.period}</span></div><p className="mt-4 text-xs leading-relaxed text-[var(--dash-muted)]">{selectedPlan.description}</p></div>
+                        <div className="p-6"><h3 className="mb-4 text-xs font-semibold text-[var(--dash-text)]">Included with your membership</h3><ul className="space-y-3.5">{selectedPlan.features.map(feature => <li key={feature} className="flex items-start gap-2.5 text-xs leading-relaxed text-[var(--dash-muted)]"><Check size={14} className="mt-0.5 shrink-0 text-[var(--dash-subtle)]" /><span>{feature}</span></li>)}</ul></div>
+                        <div className="flex items-center gap-3 border-t border-[var(--dash-border)] bg-[var(--dash-panel-raised)] px-6 py-4"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--dash-border)] bg-[var(--dash-panel)] text-sm font-medium text-[var(--dash-text)]">{user.email.charAt(0).toUpperCase()}</span><div className="min-w-0"><p className="dash-eyebrow mb-1">Billed to</p><p className="break-all text-xs text-[var(--dash-text)]">{user.email}</p></div></div>
+                    </motion.section>
+                    <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.06 }} className="dash-panel p-6">
+                        <h2 className="text-lg font-semibold tracking-tight text-[var(--dash-text)]">Payment summary</h2>
+                        <p className="mt-1.5 text-xs text-[var(--dash-muted)]">{selectedPlan.name} · {selectedPlan.period.replace('/', '')}</p>
+                        <dl className="mb-6 mt-6 space-y-3 text-xs"><div className="flex justify-between gap-4"><dt className="text-[var(--dash-muted)]">Base price</dt><dd className="tabular-nums text-[var(--dash-text)]">€{basePrice.toFixed(2)}</dd></div><div className="flex justify-between gap-4"><dt className="text-[var(--dash-muted)]">Tax (8%)</dt><dd className="tabular-nums text-[var(--dash-text)]">€{taxAmount.toFixed(2)}</dd></div><div className="flex justify-between gap-4 border-t border-[var(--dash-border)] pt-4 text-sm font-semibold"><dt className="text-[var(--dash-text)]">Total</dt><dd className="tabular-nums text-[var(--dash-text)]">€{totalAmount.toFixed(2)}</dd></div></dl>
+                        {error && <p role="alert" className="mb-5 rounded-lg border border-[var(--dash-border)] bg-[var(--dash-panel-raised)] p-3 text-xs leading-relaxed text-[var(--dash-error)]">{error}</p>}
+                        <div className="relative w-full overflow-hidden rounded-lg">
+                                    {isLifetime ? (
                                         <PayPalButtons
-                                            style={{ shape: "rect", height: 55, layout: "vertical", color: "white" }}
-                                            forceReRender={[totalAmount, user?.id]}
+                                            style={{ shape: "rect", height: 55, layout: "vertical", color: resolvedTheme === "dark" ? "white" : "black" }}
+                                            forceReRender={[totalAmount, user?.id, resolvedTheme]}
                                             createOrder={(data, actions) => {
                                                 return actions.order.create({
                                                     purchase_units: [{
@@ -222,8 +123,8 @@ const Payment = () => {
                                         />
                                     ) : (
                                         <PayPalButtons
-                                            style={{ shape: "rect", height: 55, layout: "vertical", color: "white" }}
-                                            forceReRender={[selectedPlan.name, user?.id]}
+                                            style={{ shape: "rect", height: 55, layout: "vertical", color: resolvedTheme === "dark" ? "white" : "black" }}
+                                            forceReRender={[selectedPlan.name, user?.id, resolvedTheme]}
                                             createSubscription={(data, actions) => {
                                                 const planId = PAYPAL_PLANS[selectedPlan.name];
                                                 if (!planId) {
@@ -256,23 +157,13 @@ const Payment = () => {
                                             }}
                                         />
                                     )}
-                                </div>
-
-                                <motion.div variants={itemVariants} className="mt-8 flex flex-col items-center justify-center gap-3">
-                                    <div className="flex items-center gap-2 text-[11px] font-bold text-zinc-500 uppercase tracking-widest bg-white/5 border border-white/5 px-4 py-2 rounded-full">
-                                        <ShieldCheck className="w-3.5 h-3.5 text-white" /> Payment secured by PayPal
-                                    </div>
-                                    <p className="text-center text-xs text-zinc-600 font-medium">
-                                        You will be redirected securely to complete the payment.
-                                    </p>
-                                </motion.div>
-                            </motion.div>
-                        </motion.div>
-                    </div>
+                        </div>
+                        <div className="mt-4 border-t border-[var(--dash-border)] pt-4"><p className="flex items-center justify-center gap-2 text-xs text-[var(--dash-muted)]"><ShieldCheck size={14} />Payment handled by PayPal</p><p className="mt-2 text-center text-[11px] leading-relaxed text-[var(--dash-subtle)]">You will be redirected to PayPal to complete your payment.</p></div>
+                    </motion.section>
                 </div>
             </div>
-        </PayPalScriptProvider>
-    );
+        </div>
+    </PayPalScriptProvider>;
 };
 
 export default Payment;

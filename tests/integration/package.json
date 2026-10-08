@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-test-renderer": "^18.3.1"
+  },
+  "name": "sav-dashboard-integration-tests",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node build.mjs && node layout.build.mjs && node --test integration.test.mjs layout.integration.test.mjs"
+  }
+}
